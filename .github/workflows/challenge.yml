@@ -8,22 +8,25 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Step one
-              run: date
+              uses: actions/checkout@v4
             - name: Step two
+              run: date
     job2:
         name: Second Job
         runs-on: windows-latest
         steps:
             - name: Step one
-              run: Get-date
+              uses: actions/checkout@v4
             - name: Step two
+              run: Get-date
     job3:
         name: Third Job
         runs-on: macos-latest
         steps:
             - name: Step one
-              run: date
+              uses: actions/checkout@v4
             - name: Step two
+              run: date
     job4:
         name: Fourth Job
         needs: [job1,job2,job3]
