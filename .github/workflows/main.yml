@@ -1,0 +1,19 @@
+name: Conditional Workflow with If-Else
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: If condition
+        run: echo "if this is true"
+        if: github.ref == 'refs/heads/main'  # Runs only if the push is to the main branch.
+
+      - name: Else condition
+        run: echo "this is not true"
+        if: github.ref != 'refs/heads/main'  # Runs if the push is NOT to the main branch.
