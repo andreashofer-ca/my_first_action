@@ -1,0 +1,55 @@
+name: FOSS Component Check and Register Workflow
+
+on: push
+
+jobs:
+  request-component:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request component
+        run: echo "Requesting component..."
+      - name: Check if component exists in JFrog Artifactory
+        id: check-artifactory
+        run: |
+          if curl -f -u ${{ secrets.JFROG_USERNAME }}:${{ secrets.JFROG_PASSWORD }} https://your.jfrog.io/artifactory/your-repo/component-path; then
+            echo "Component exists."
+            echo "component_exists=true" >> $GITHUB_ENV
+          else
+            echo "Component does not exist."
+            echo "component_exists=false" >> $GITHUB_ENV
+          fi
+
+  fossa-scan:
+    runs-on: ubuntu-latest
+    needs: request-component
+    if: env.component_exists == 'false'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Check with FOSSA
+        uses: fossas/fossa-action@v1.4.0
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
+        id: fossa
+
+  register-component:
+    runs-on: ubuntu-latest
+    needs: fossa-scan
+    if: steps.fossa.outputs.status == 'pass'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Register with JFrog Artifactory
+        env:
+          JFROG_USERNAME: ${{ secrets.JFROG_USERNAME }}
+          JFROG_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+        run: |
+          curl -u $JFROG_USERNAME:$JFROG_PASSWORD -X PUT "https://your.jfrog.io/artifactory/your-repo/component-path" -T component-file
+
+  exception-process:
+    runs-on: ubuntu-latest
+    needs: fossa-scan
+    if: steps.fossa.outputs.status == 'fail'
+    steps:
+      - name: Exception process
+        run: echo "Component did not pass FOSSA checks. Exception process is necessary."
