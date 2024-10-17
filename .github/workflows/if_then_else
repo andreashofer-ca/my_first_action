@@ -1,4 +1,4 @@
-name: Conditional Workflow with If-Else
+name: Workflow with If-Else
 
 on: push
 
